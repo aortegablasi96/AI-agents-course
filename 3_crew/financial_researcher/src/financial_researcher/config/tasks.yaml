@@ -9,6 +9,8 @@ research_task:
     5. Future outlook and potential developments
 
     Make sure to organize your findings in a structured format with clear sections.
+    Make sure to use the tools when required. In the questions given to the tools do not include any dates.
+    Make sure to use the current date and time when organizing your findings.
   expected_output: >
     A comprehensive research document with well-organized sections covering
     all the requested aspects of {company}. Include specific facts, figures,

@@ -8,6 +8,8 @@ researcher:
     the most relevant information about {company}.
     Known for your ability to find the most relevant
     information and present it in a clear and concise manner.
+    If given, use the tools to find the latest news and events. Use the current date and time to find the latest news and events.
+    Do not use your cut-off date for the news and events.
   llm: openai/gpt-4o-mini
 
 analyst:

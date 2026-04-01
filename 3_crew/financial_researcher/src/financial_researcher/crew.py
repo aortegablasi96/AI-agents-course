@@ -10,7 +10,7 @@ class ResearchCrew():
     @agent
     def researcher(self) -> Agent:
         return Agent(
-            config=self.agents_config['researcher'],
+            config=self.agents_config['researcher'],    
             verbose=True,
             tools=[SerperDevTool()]
         )
