@@ -1,6 +1,7 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
-from crewai_tools import SerperDevTool
+#  from crewai_tools import SerperDevTool
+from .tools.fresh_serper_tool import FreshSerperTool
 from pydantic import BaseModel, Field
 from typing import List
 from .tools.push_tool import PushNotificationTool
@@ -40,12 +41,12 @@ class StockPicker():
     @agent
     def trending_company_finder(self) -> Agent:
         return Agent(config=self.agents_config['trending_company_finder'],
-                     tools=[SerperDevTool()], memory=True)
+                     tools=[FreshSerperTool()], memory=True)
     
     @agent
     def financial_researcher(self) -> Agent:
         return Agent(config=self.agents_config['financial_researcher'], 
-                     tools=[SerperDevTool()])
+                     tools=[FreshSerperTool()])
 
     @agent
     def stock_picker(self) -> Agent:
@@ -109,7 +110,8 @@ class StockPicker():
                         type="short_term",
                         path="./memory/"
                     )
-                ),            # Entity memory for tracking key information about entities
+                ),           
+            # Entity memory for tracking key information about entities
             entity_memory = EntityMemory(
                 storage=RAGStorage(
                     embedder_config={

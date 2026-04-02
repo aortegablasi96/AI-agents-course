@@ -1,6 +1,7 @@
 find_trending_companies:
   description: >
     Find the top trending companies in the news in {sector} by searching the latest news. Find new companies that you've not found before.
+    When using Serper, make sure to not include any 4-digit year in the queries. If it does, make sure to rewrite the query.
   expected_output: >
     A list of trending companies in {sector}
   agent: trending_company_finder
@@ -8,7 +9,8 @@ find_trending_companies:
 
 research_trending_companies:
   description: >
-    Given a list of trending companies, provide detailed analysis of each company in a report by searching online
+    Given a list of trending companies, provide detailed analysis of each company in a report by searching online.
+    When using Serper, make sure to not include any 4-digit year in the queries. If it does, make sure to rewrite the query.
   expected_output: >
     A report containing detailed analysis of each company
   agent: financial_researcher

@@ -1,11 +1,26 @@
-The chosen company for investment is LumeCube. Their robust market position as a leader in portable lighting solutions for content creators, coupled with strategic innovations and direct-to-consumer strategies, sets them up for significant growth. The increasing demand for professional-grade lighting in digital content creation enhances their investment potential.
-
-Companies not selected:
-
-1. Epic MegaGrants: Despite substantial investment opportunities within the gaming and technology sectors, the focus on funding via the initiative may dilute direct investment returns. It is overshadowed by LumeCube's more direct consumer engagement and product-driven growth strategy.
-
-2. Synapse: While promising in fintech innovations, the operational and regulatory challenges, alongside competition, make it less favorable compared to LumeCube’s well-defined market and product alignment with prevailing trends.
-
-3. Boom Supersonic: Although they present exciting pre-IPO investments with advancements in supersonic travel and strong partnerships, the challenges in regulation and certification pose substantial risks. LumeCube's current and tested market offerings offer a more reliable investment path.
-
-Push Notification Sent: "Investment in LumeCube is recommended: As a leader in portable lighting solutions for content creators, LumeCube shows high growth potential due to increasing demand and strategic innovations."
+{
+  "selected_company": {
+    "name": "Nuro",
+    "market_position": "Nuro has positioned itself as an industry leader in the autonomous delivery space, having secured $203 million in funding with a valuation of $6 billion as of 2025.",
+    "future_outlook": "The strategic pivot towards licensing its autonomous vehicle technology could open new revenue streams and potentially expand its market impact amidst the growing e-commerce demand.",
+    "investment_potential": "With significant partnerships with major companies like Nvidia and Uber, Nuro is seen as a strong investment opportunity in the logistics and delivery sectors."
+  },
+  "companies_not_selected": [
+    {
+      "name": "Hugging Face",
+      "reason": "While promising in the AI sector, the investment landscape in this area is highly competitive and saturated. Its business model does not present as clear a path to profitability as Nuro’s."
+    },
+    {
+      "name": "Stellar Health",
+      "reason": "Although it aligns with healthcare trends, the market is highly regulated and could face barriers to scaling. Nuro's licensing model offers broader scalable opportunities."
+    },
+    {
+      "name": "Axiom Space",
+      "reason": "While it has potential with space commercialization, it operates in a niche market with high barriers to entry. Nuro's business model and market readiness are more advantageous at this time."
+    },
+    {
+      "name": "Velo3D",
+      "reason": "While it has strong contracts, the sector's reliance on government contracts could pose risks. Nuro's investment stability appears more reliable."
+    }
+  ]
+}
