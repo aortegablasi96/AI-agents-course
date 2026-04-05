@@ -3,6 +3,8 @@ from search_agent import search_agent
 from planner_agent import planner_agent, WebSearchItem, WebSearchPlan
 from writer_agent import writer_agent, ReportData
 from email_agent import email_agent
+from questioning_agent import questioning_agent, FullQuery
+from agents import Agent, function_tool
 import asyncio
 
 class ResearchManager:
@@ -14,7 +16,9 @@ class ResearchManager:
             print(f"View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}")
             yield f"View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}"
             print("Starting research...")
-            search_plan = await self.plan_searches(query)
+            full_query = await self.get_clarification_questions(query)
+            print("Clarifying questions obtained, starting the search planification...")
+            search_plan = await self.plan_searches(full_query)
             yield "Searches planned, starting to search..."     
             search_results = await self.perform_searches(search_plan)
             yield "Searches complete, writing report..."
@@ -23,17 +27,34 @@ class ResearchManager:
             await self.send_email(report)
             yield "Email sent, research complete"
             yield report.markdown_report
-        
 
-    async def plan_searches(self, query: str) -> WebSearchPlan:
+
+    async def get_clarification_questions(self, query: str) -> FullQuery:
+        """ Get clarifying questions for the given query """
+        print("Getting clarifying questions...")
+        result = await Runner.run(
+            questioning_agent,
+            f"Query: {query}",
+        )
+        print(f"Have obtained {len(result.final_output.clarifying_questions)} clarifying questions")
+        return result.final_output_as(FullQuery)
+
+        
+    async def plan_searches(self, full_query: FullQuery) -> WebSearchPlan:
         """ Plan the searches to perform for the query """
         print("Planning searches...")
+        input = f"Query: {full_query.query}.\nClarifying questions: "
+
+        for question in full_query.clarifying_questions:
+            input += question
+
         result = await Runner.run(
             planner_agent,
-            f"Query: {query}",
+            input,
         )
         print(f"Will perform {len(result.final_output.searches)} searches")
         return result.final_output_as(WebSearchPlan)
+
 
     async def perform_searches(self, search_plan: WebSearchPlan) -> list[str]:
         """ Perform the searches to perform for the query """
@@ -50,6 +71,7 @@ class ResearchManager:
         print("Finished searching")
         return results
 
+
     async def search(self, item: WebSearchItem) -> str | None:
         """ Perform a search for the query """
         input = f"Search term: {item.query}\nReason for searching: {item.reason}"
@@ -62,6 +84,7 @@ class ResearchManager:
         except Exception:
             return None
 
+
     async def write_report(self, query: str, search_results: list[str]) -> ReportData:
         """ Write the report for the query """
         print("Thinking about report...")
@@ -73,6 +96,7 @@ class ResearchManager:
 
         print("Finished writing report")
         return result.final_output_as(ReportData)
+
     
     async def send_email(self, report: ReportData) -> None:
         print("Writing email...")
@@ -80,5 +104,5 @@ class ResearchManager:
             email_agent,
             report.markdown_report,
         )
-        print("Email sent")
+        print("Email sent")f
         return report
