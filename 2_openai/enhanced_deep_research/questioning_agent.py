@@ -3,11 +3,12 @@ from agents import Agent
 
 HOW_MANY_QUESTIONS = 3
 
-INSTRUCTIONS = f"You are a helpful research assistant. Given a query come up with a set of {HOW_MANY_QUESTIONS} clarifying questions \
-to understand better query. These questions will be added to the query to then search about them using another agent."
+INSTRUCTIONS = f"You are a helpful research assistant. Given a query, come up with a set of {HOW_MANY_QUESTIONS} clarifying questions \
+that try to expand the context of the query and give clarification. These questions will be added to the query to then search about the query using another agent."
 
 class QueryQuestionItem(BaseModel):
     question: str = Field(description="A clarifying question to understand better the query.")
+    reason: str = Field(description="Your reasoning for why this clarifying question is important to the query. Describe how clarifies the query")
     
 
 class FullQuery(BaseModel):

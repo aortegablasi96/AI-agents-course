@@ -3,7 +3,7 @@ from search_agent import search_agent
 from planner_agent import planner_agent, WebSearchItem, WebSearchPlan
 from writer_agent import writer_agent, ReportData
 from email_agent import email_agent
-from questioning_agent import questioning_agent, FullQuery
+from questioning_agent import questioning_agent, FullQuery, QueryQuestionItem
 from agents import Agent, function_tool
 import asyncio
 
@@ -43,10 +43,10 @@ class ResearchManager:
     async def plan_searches(self, full_query: FullQuery) -> WebSearchPlan:
         """ Plan the searches to perform for the query """
         print("Planning searches...")
-        input = f"Query: {full_query.query}.\nClarifying questions: "
+        input = f"Query: {full_query.query}.\n"
 
-        for question in full_query.clarifying_questions:
-            input += question
+        for question_item in full_query.clarifying_questions:
+            input += f"Clarifying question: {question_item.question}\nReason for searching: {question_item.reason}\n"
 
         result = await Runner.run(
             planner_agent,
@@ -104,5 +104,5 @@ class ResearchManager:
             email_agent,
             report.markdown_report,
         )
-        print("Email sent")f
+        print("Email sent")
         return report
