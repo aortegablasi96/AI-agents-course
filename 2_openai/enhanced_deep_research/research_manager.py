@@ -4,6 +4,7 @@ from planner_agent import planner_agent, WebSearchItem, WebSearchPlan
 from writer_agent import writer_agent, ReportData
 from email_agent import email_agent
 from questioning_agent import questioning_agent, FullQuery, QueryQuestionItem
+from evaluator_agent import evaluator_agent, EvaluationPlan, EvalItem
 from agents import Agent, function_tool
 import asyncio
 
@@ -15,14 +16,35 @@ class ResearchManager:
         with trace("Enhanced Research trace", trace_id=trace_id):
             print(f"View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}")
             yield f"View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}"
-            print("Starting research...")
+
+        
+            yield "Starting research..."
             full_query = await self.get_clarification_questions(query)
-            print("Clarifying questions obtained, starting the search planification...")
+            yield "Clarifying questions obtained, starting the search planification..."
             search_plan = await self.plan_searches(full_query)
             yield "Searches planned, starting to search..."     
             search_results = await self.perform_searches(search_plan)
-            yield "Searches complete, writing report..."
-            report = await self.write_report(query, search_results)
+            yield "Searches complete, evaluating them..."
+            evaluation_results = await self.evaluate_searches(search_results)
+
+            while not all(evaluation_results.searches_and_evals.eval_answer):
+                yield "Evaluation not succesful, searching again to correct the wrong results..."
+                new_search_plan = WebSearchPlan()
+                new_search_results = [] 
+                
+                for index, search_item in enumerate(search_plan):
+                    if not evaluation_results.search_and_evaluations[index].eval_item:
+                        new_search_plan.append(search_item)
+                    else:
+                        new_search_results.append(search_results[index])
+                    
+                new_search_results.append(await self.perform_searches(new_search_plan))
+                yield "New results obtained, evaluating again..."
+                evaluation_results = await self.evaluate_searches(new_search_results)
+
+
+            yield "Evaluation succesful, writing report..."
+            report = await self.write_report(query, evaluation_results.searches)
             yield "Report written, sending email..."
             await self.send_email(report)
             yield "Email sent, research complete"
@@ -71,7 +93,6 @@ class ResearchManager:
         print("Finished searching")
         return results
 
-
     async def search(self, item: WebSearchItem) -> str | None:
         """ Perform a search for the query """
         input = f"Search term: {item.query}\nReason for searching: {item.reason}"
@@ -83,6 +104,31 @@ class ResearchManager:
             return str(result.final_output)
         except Exception:
             return None
+
+    async def evaluate_searches(self, search_results: list[str]) -> EvaluationPlan:
+        print("Evaluating...")
+        num_completed = 0
+        tasks = [asyncio.create_task(self.evaluate(item)) for item in search_results]
+        evaluations = []
+        for task in tasks:
+            eval = await task
+            if eval is not None:
+                evaluations.extend(eval)
+            num_completed += 1
+            print(f"Evaluation... {num_completed}/{len(tasks)} completed")
+        print("Finished evaluating")
+        return evaluations
+
+
+    async def evaluate(self, search_result: str) -> EvalItem:
+        """ Perform a evaluation for the search result """
+        input = f"Search result: {search_result}"
+
+        result = await Runner.run(
+            evaluator_agent,
+            input,
+        )
+        return str(result.final_output)
 
 
     async def write_report(self, query: str, search_results: list[str]) -> ReportData:
