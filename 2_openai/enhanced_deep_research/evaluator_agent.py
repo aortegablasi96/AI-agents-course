@@ -1,9 +1,22 @@
 import os
 from pydantic import BaseModel, Field
 from agents import Agent, function_tool
+from agents.models.openai_chatcompletions import OpenAIChatCompletionsModel
+from openai import AsyncOpenAI
 
+client = AsyncOpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"
+)
 
-INSTRUCTIONS = """You are an evaluator of the answers given to a query. For each search given, check if the answers are correct and accurate."""
+model = OpenAIChatCompletionsModel(
+    model="llama3.2:1b",
+    openai_client=client
+)
+
+INSTRUCTIONS = """You are an evaluator of the answers given to a query's serch. 
+                The answer will consist in a summary detailing the search results. For the research done,
+                check if it is certain and accurate."""
 
 class EvalItem(BaseModel):
     search: str = Field(description="The search result")
@@ -15,6 +28,6 @@ class EvaluationPlan(BaseModel):
 evaluator_agent = Agent(
     name="EvaluatorAgent",
     instructions=INSTRUCTIONS,
-    model="gpt-4o-mini",
-    output_type=EvaluationPlan,
+    model=model,
+    output_type=EvalItem,
 )

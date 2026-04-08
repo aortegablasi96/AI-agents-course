@@ -4,7 +4,18 @@ from typing import Dict
 import sendgrid
 from sendgrid.helpers.mail import Email, Mail, Content, To
 from agents import Agent, function_tool
+from agents.models.openai_chatcompletions import OpenAIChatCompletionsModel
+from openai import AsyncOpenAI
 
+client = AsyncOpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"
+)
+
+model = OpenAIChatCompletionsModel(
+    model="llama3.2:1b",
+    openai_client=client
+)
 
 @function_tool
 def send_email(subject: str, html_body: str) -> Dict[str, str]:
@@ -27,5 +38,5 @@ email_agent = Agent(
     name="Email agent",
     instructions=INSTRUCTIONS,
     tools=[send_email],
-    model="gpt-4o-mini",
+    model=model,
 )

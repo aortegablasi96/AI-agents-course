@@ -1,7 +1,19 @@
 from pydantic import BaseModel, Field
 from agents import Agent
+from agents.models.openai_chatcompletions import OpenAIChatCompletionsModel
+from openai import AsyncOpenAI
 
-HOW_MANY_SEARCHES = 3
+client = AsyncOpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"
+)
+
+model = OpenAIChatCompletionsModel(
+    model="llama3.2:1b",
+    openai_client=client
+)
+
+HOW_MANY_SEARCHES = 2
 
 INSTRUCTIONS = f"You are a helpful research assistant. You'll be given a query with a set of clarifying questions to expand \
                 the query's context and to understand it better. Given the query, come up with a set of web searches \
@@ -20,6 +32,6 @@ class WebSearchPlan(BaseModel):
 planner_agent = Agent(
     name="PlannerAgent",
     instructions=INSTRUCTIONS,
-    model="gpt-4o-mini",
+    model=model,
     output_type=WebSearchPlan,
 )

@@ -26,15 +26,22 @@ class ResearchManager:
             search_results = await self.perform_searches(search_plan)
             yield "Searches complete, evaluating them..."
             evaluation_results = await self.evaluate_searches(search_results)
+            
+            evaluation_success = True
+            for eval_item in evaluation_results.searches_and_evals:
+                print(type(eval_item.eval_answer))
+                print(eval_item.eval_answer)
+                if not eval_item.eval_answer:
+                    evaluation_success = False
 
-            while not all(evaluation_results.searches_and_evals.eval_answer):
+            while not evaluation_success:
                 yield "Evaluation not succesful, searching again to correct the wrong results..."
-                new_search_plan = WebSearchPlan()
+                new_search_plan = WebSearchPlan(searches=[])
                 new_search_results = [] 
                 
                 for index, search_item in enumerate(search_plan):
                     if not evaluation_results.search_and_evaluations[index].eval_item:
-                        new_search_plan.append(search_item)
+                        new_search_plan.searches.append(search_item)
                     else:
                         new_search_results.append(search_results[index])
                     
@@ -42,9 +49,18 @@ class ResearchManager:
                 yield "New results obtained, evaluating again..."
                 evaluation_results = await self.evaluate_searches(new_search_results)
 
+                evaluation_success = True
+                for eval_item in evaluation_results.searches_and_evals:
+                    if not eval_item.eval_answer:
+                        evaluation_success = False
+            
+            final_research = ""
+
+            for item in evaluation_results.searches_and_evals:
+                final_researchfinal_research += item.search
 
             yield "Evaluation succesful, writing report..."
-            report = await self.write_report(query, evaluation_results.searches)
+            report = await self.write_report(query, final_research)
             yield "Report written, sending email..."
             await self.send_email(report)
             yield "Email sent, research complete"
@@ -106,14 +122,15 @@ class ResearchManager:
             return None
 
     async def evaluate_searches(self, search_results: list[str]) -> EvaluationPlan:
+        print(f"Will perform {len(search_results)} evaluations")
         print("Evaluating...")
         num_completed = 0
         tasks = [asyncio.create_task(self.evaluate(item)) for item in search_results]
-        evaluations = []
+        evaluations = EvaluationPlan(searches_and_evals=[])
         for task in tasks:
             eval = await task
             if eval is not None:
-                evaluations.extend(eval)
+                evaluations.searches_and_evals.append(eval)
             num_completed += 1
             print(f"Evaluation... {num_completed}/{len(tasks)} completed")
         print("Finished evaluating")

@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from agents import Agent
 
+
 INSTRUCTIONS = (
     "You are a senior researcher tasked with writing a cohesive report for a research query. "
     "You will be provided with the original query, and some initial research done by a research assistant.\n"
