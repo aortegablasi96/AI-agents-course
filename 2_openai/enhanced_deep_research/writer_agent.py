@@ -1,6 +1,17 @@
 from pydantic import BaseModel, Field
 from agents import Agent
+from agents.models.openai_chatcompletions import OpenAIChatCompletionsModel
+from openai import AsyncOpenAI
 
+client = AsyncOpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"
+)
+
+model = OpenAIChatCompletionsModel(
+    model="llama3.2:1b",
+    openai_client=client
+)
 
 INSTRUCTIONS = (
     "You are a senior researcher tasked with writing a cohesive report for a research query. "
@@ -23,6 +34,6 @@ class ReportData(BaseModel):
 writer_agent = Agent(
     name="WriterAgent",
     instructions=INSTRUCTIONS,
-    model="gpt-4o-mini",
+    model=model,
     output_type=ReportData,
 )
