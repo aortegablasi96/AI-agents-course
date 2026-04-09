@@ -19,11 +19,7 @@ INSTRUCTIONS = """You are an evaluator of the answers given to a query's serch.
                 check if it is certain and accurate."""
 
 class EvalItem(BaseModel):
-    search: str = Field(description="The search result")
     eval_answer: bool = Field(description="The output of the evaluation")
-
-class EvaluationPlan(BaseModel):
-    searches_and_evals: list[EvalItem] = Field(description="A list of search results and their evaluations")
 
 evaluator_agent = Agent(
     name="EvaluatorAgent",
