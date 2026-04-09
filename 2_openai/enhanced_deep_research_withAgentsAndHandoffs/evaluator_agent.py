@@ -1,11 +1,11 @@
 import os
 from pydantic import BaseModel, Field
-from agents import Agent
+from agents import Agent, WebSearchTool, ModelSettings
 
 
 INSTRUCTIONS = """You are an evaluator of the answers given to a query's serch. 
                 The answer will consist in a summary detailing the search results. For the research done,
-                check if it is certain and accurate."""
+                check if it is certain and accurate, by using the tools."""
 
 
 class EvalItem(BaseModel):
@@ -17,4 +17,6 @@ evaluator_agent = Agent(
     instructions=INSTRUCTIONS,
     model="gpt-4o-mini",
     output_type=EvalItem,
+    tools=[WebSearchTool(search_context_size="low")],
+    model_settings=ModelSettings(tool_choice="required"),
 )

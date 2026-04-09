@@ -5,8 +5,8 @@ from writer_agent import writer_agent
 from email_agent import email_agent
 from questioning_agent import questioning_agent
 from evaluator_agent import evaluator_agent
+from email_manager_agent import email_manager_agent
 from agents import Agent
-import asyncio
 
 
 INSTRUCTIONS = (
@@ -18,11 +18,10 @@ INSTRUCTIONS = (
     "3. Using the several searches given, you need to research about each of them to answer the original query, using the 'search_tool'.\n"
     "4. Then, you need to evaluate each search's response, using the 'evalution_tool'.\n"
     "4.1. Follow this path if the evaluation goes wrong. Restart from step 3 to search again better.\n"
-    "4.2. Follow this path if the evaluation is correct. With the different researches obtained, then you have to write "
-    "down a report summarizing all of them, using the 'reporting_tool'.\n"
-    "5. Finally, when the report is created, you need to send it by mail using the 'send_email_tool'.\n"
+    "4.2. Follow this path if the evaluation is correct. Handoff for Email Sending: Pass ONLY the original query and the search results obtained in step 3 "
+    "to the 'Email Manager' agent.\n"
     "Always delegate the work to the different tools you have been provided, never try to do any of the steps by yourself."
-    "When you're done, save as final output the report written."
+    "You must hand off EXACTLY the original query along the search results obtained in step 3."
 )
 
 
@@ -30,10 +29,8 @@ questioning_tool = questioning_agent.as_tool(tool_name="questioning_tool", tool_
 planification_tool = planner_agent.as_tool(tool_name="planification_tool", tool_description="To generate search statements to answer the given query")
 search_tool = search_agent.as_tool(tool_name="search_tool", tool_description="To serch about the given search statements")
 evaluation_tool = evaluator_agent.as_tool(tool_name="evaluation_tool", tool_description="To evaluate the results of the searches")
-reporting_tool = writer_agent.as_tool(tool_name="reporting_tool", tool_description="To write the summary report")
-send_email_tool = email_agent.as_tool(tool_name="send_email_tool", tool_description="To send the email to the user")
 
-tools = [questioning_tool,planification_tool,search_tool,evaluation_tool,reporting_tool,send_email_tool]
+tools = [questioning_tool,planification_tool,search_tool,evaluation_tool]
 
     
 research_manager_agent = Agent(
@@ -42,4 +39,5 @@ research_manager_agent = Agent(
     tools=tools,
     model="gpt-4o-mini",
     model_settings=ModelSettings(tool_choice="required"),
+    handoffs=[email_manager_agent],
 )

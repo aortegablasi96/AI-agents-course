@@ -1,21 +1,25 @@
 import gradio as gr
 from dotenv import load_dotenv
-from research_manager_agent import research_manager_agent
-from agents import Runner
+from research_manager_agent_whandoffs import research_manager_agent #change the 'from' to import from the research manager without handoffs
+from agents import Runner, trace, gen_trace_id
 
 load_dotenv(override=True)
 
 
 async def run(query: str):
     """ Run the agentic flow by starting the Research Manager Agent"""
-    print("Starting Research Manager Agent...")
 
-    input=f"Query: {query}"
-    chunk = await Runner.run(
-        research_manager_agent,
-        input
-    )
-    yield chunk
+
+    trace_id = gen_trace_id()
+    with trace("Enhanced Research trace", trace_id=trace_id):
+        print(f"View trace: https://platform.openai.com/traces/trace?trace_id={trace_id}")
+
+        result = await Runner.run(
+            research_manager_agent,
+            f"Query: {query}"
+        )
+
+        return result.final_output
 
 
 with gr.Blocks(theme=gr.themes.Default(primary_hue="sky")) as ui:

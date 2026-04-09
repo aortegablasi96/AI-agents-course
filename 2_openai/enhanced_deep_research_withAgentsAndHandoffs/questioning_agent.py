@@ -2,7 +2,7 @@ from pydantic import BaseModel,Field
 from agents import Agent
 
 
-HOW_MANY_QUESTIONS = 2
+HOW_MANY_QUESTIONS = 1
 
 INSTRUCTIONS = f"You are a helpful research assistant. Given a query, come up with a set of {HOW_MANY_QUESTIONS} clarifying questions \
 that try to expand the context of the query and give clarification. These questions will be added to the query to then search about the query using another agent."
