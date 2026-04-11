@@ -23,9 +23,8 @@ class Nodes:
         self.llm = ChatOpenAI(model=self.model)
     
     def worker_node(self, state: State):
-        """
-        Main worker node executing user's query.
-        """
+        """ Main worker node executing user's query. """
+        
         # define system prompt + messages.
         system_prompt = WORKER_PROMPT.format(
             success_criteria=state.success_criteria,
