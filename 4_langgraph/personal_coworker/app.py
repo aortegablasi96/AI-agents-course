@@ -23,8 +23,11 @@ class App:
             sidekick = gr.State(delete_callback=self.free_resources)
 
             with gr.Row():
-                chatbot = gr.Chatbot(label="Sidekick", height=300, type="messages")
-            with gr.Group():
+                with gr.Column(scale=3):
+                    chatbot = gr.Chatbot(label="Sidekick", height=300, type="messages")
+                with gr.Column(scale=1):
+                    flow_scheme = gr.Image(label="Flow diagram of the model", height=300, interactive=False)
+            with gr.Group():                    
                 with gr.Row():
                     message = gr.Textbox(
                         show_label=False, placeholder="Your request to the Sidekick"
@@ -38,24 +41,14 @@ class App:
                 reset_button = gr.Button("Reset", variant="stop")
                 go_button = gr.Button("Go!", variant="primary")
 
-            ui.load(self.setup, [], [sidekick])
-            message.submit(
-                self.process_message,
-                [sidekick, message, success_criteria, chatbot],
-                [chatbot, sidekick],
-            )
-            success_criteria.submit(
-                self.process_message,
-                [sidekick, message, success_criteria, chatbot],
-                [chatbot, sidekick],
-            )
+            ui.load(self.setup, [], [flow_scheme,sidekick])
             go_button.click(
                 self.process_message,
                 [sidekick, message, success_criteria, chatbot],
                 [chatbot, sidekick],
             )
             reset_button.click(
-                self.reset, [], [message, success_criteria, chatbot, sidekick]
+                self.reset, [], [message, success_criteria, chatbot, flow_scheme, sidekick]
             )
 
         return ui
@@ -66,25 +59,27 @@ class App:
         """
         sidekick = Graph()
         await sidekick.setup()
-        return sidekick
+        image = sidekick.get_nodes_diagram()
+        return image,sidekick
 
     async def process_message(self, sidekick, message, success_criteria, history):
         """ Handle user message submission. """
         results = await sidekick.run_superstep(
             message, success_criteria, history
         )
-        return results, sidekick
+
+        return results,sidekick
 
     async def reset(self):
         """ Reset the conversation and create a new sidekick instance. """
         new_sidekick = Graph()
         await new_sidekick.setup()
-        return "", "", None, new_sidekick
+
+        image = new_sidekick.get_nodes_diagram()
+        return None, "", None, image, new_sidekick
 
     def free_resources(self, sidekick):
-        """
-        Clean up resources when the sidekick state is discarded.
-        """
+        """ Clean up resources when the sidekick state is discarded. """
         print("Cleaning up")
         try:
             if sidekick:

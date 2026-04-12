@@ -1,9 +1,21 @@
 from models.state import State
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from typing import List, Any, Optional, Dict
 from datetime import datetime
 
+def get_questioner_system_message(state: State)-> str:
+    system_message = f"You are a helpful research assistant. Given a query, come up with 3 clarifying \
+            statements or questions that provide more context to the query. They will be used afterwards to support the development of the query..\n"
+
+    return system_message
+
+def get_questioner_user_message(state: State):
+    return f"This is the query: {state.messages[0]}" 
+
+def get_questioner_message(state: State):
+    return [SystemMessage(content=get_questioner_system_message(state)), HumanMessage(content=get_questioner_user_message(state))]
+
 def get_worker_system_message(state:State) -> str:
+       
     system_message = f"""You are a helpful assistant that can use tools to complete tasks.
 You keep working on a task until either you have a question or clarification for the user, or the success criteria is met.
 You have many tools to help you, including tools to browse the internet, navigating and retrieving web pages.
@@ -12,6 +24,7 @@ The current date and time is {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
 This is the success criteria:
 {state.success_criteria}
+
 You should reply either with a question for the user about this assignment, or with your final response.
 If you have a question for the user, you need to reply by clearly stating your question. An example might be:
 
@@ -43,13 +56,13 @@ def get_evaluator_user_message(state:State) -> str:
     user_message = user_message = f"""You are evaluating a conversation between the User and Assistant. You decide what action to take based on the last response from the Assistant.
 
     The entire conversation with the assistant, with the user's original request and all replies, is:
-    {format_conversation(state.messages)}
+    {format_conversation(state)}
 
     The success criteria for this assignment is:
     {state.success_criteria}
 
     And the final response from the Assistant that you are evaluating is:
-    {last_response}
+    {last_response.content}
 
     Respond with your feedback, and decide if the success criteria is met by this response.
     Also, decide if more user input is required, either because the assistant has a question, needs clarification, or seems to be stuck and unable to answer without help.
@@ -72,11 +85,9 @@ def get_evaluator_message(state:State) -> [SystemMessage,HumanMessage]:
         ]
     return evaluator_messages
 
-
-
-def format_conversation(messages: List[Any]) -> str:
+def format_conversation(state) -> str:
     conversation = "Conversation history:\n\n"
-    for message in messages:
+    for message in state.messages:
         if isinstance(message, HumanMessage):
             conversation += f"User: {message.content}\n"
         elif isinstance(message, AIMessage):

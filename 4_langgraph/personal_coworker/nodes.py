@@ -1,11 +1,9 @@
-from dotenv import load_dotenv
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
-from typing import List, Any, Optional, Dict
+from langchain_core.messages import SystemMessage
+from typing import Any, Dict
 
 from tools import Tools
 from models.state import State
-from prompts import get_worker_system_message,get_evaluator_message
+from prompts import get_worker_system_message,get_evaluator_message,get_questioner_message
 
 class Nodes:
     def __init__(self):
@@ -13,13 +11,33 @@ class Nodes:
         self.tools = None
         self.llm_with_tools = None
         self.evaluator_llm_with_output = None
+        self.questioner_llm_with_output = None
         self.model = "gpt-4o-mini"
-        self.llm = ChatOpenAI(model=self.model)
+
+    def questioner_node(self, state: State) -> State:
+        questioner_messages = get_questioner_message(state)
+        response = self.questioner_llm_with_output.invoke(questioner_messages)
+        
+        message = ""
+        for quest_out_item in response.question_output:
+            message += f'Clarifying question provided:{quest_out_item.question}\n'
+            message += f'Reasoning of the last question provided:{quest_out_item.reason}\n'
+
+        new_state = {
+            "messages": [
+                {
+                    "role": "assistant",
+                    "content": message
+                }
+            ],
+        }
+
+        return new_state
 
     def worker_node(self, state:State) -> Dict[str, Any]:
         system_message = get_worker_system_message(state)
 
-         # Add in the system message
+        # Add in the system message
         found_system_message = False
         messages = state.messages
         for message in messages:
@@ -29,7 +47,6 @@ class Nodes:
 
         if not found_system_message:
             messages = [SystemMessage(content=system_message)] + messages
-
         # Invoke the LLM with tools
         response = self.llm_with_tools.invoke(messages)
 
@@ -52,23 +69,5 @@ class Nodes:
             "feedback_on_work": eval_result.feedback,
             "success_criteria_met": eval_result.success_criteria_met,
             "user_input_needed": eval_result.user_input_needed,
-        }
-        return new_state
-
-            
-    def questioner_node(self, state: State) -> State:
-        query = state.messages[-1].content
-
-        system_message = f"You are a helpful research assistant. Given a query, come up with a set of 2 \
-    clarifying questions that try to expand the context of the query and give clarification. These questions will be added \
-    to the query to then search about the query using another agent."
-
-        user_message = f"The query given is the following:\n{query}"
-
-        questioner_messages = [SystemMessage(content=system_message), HumanMessage(content=user_message)]
-
-        response = self.llm.invoke(questioner_messages)
-        new_state = {
-            "messages": response
         }
         return new_state
