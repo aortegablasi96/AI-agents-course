@@ -1,23 +1,21 @@
 """
-Tools for our Agents to use.
+Miscellaneous tools for our Agents to use.
 """
 
-from typing import Literal
-from playwright.async_api import async_playwright
-from langchain_community.agent_toolkits import PlayWrightBrowserToolkit
 from dotenv import load_dotenv
 import os
 import requests
 from langchain.agents import Tool
 from langchain_community.agent_toolkits import FileManagementToolkit
 from langchain_community.tools.wikipedia.tool import WikipediaQueryRun
+from langchain_community.tools import YouTubeSearchTool
 from langchain_experimental.tools import PythonREPLTool
 from langchain_community.utilities import GoogleSerperAPIWrapper
 from langchain_community.utilities.wikipedia import WikipediaAPIWrapper
 
 load_dotenv(override=True)
 
-class Tools:
+class MiscTools:
 
     def __init__(self):
         self.pushover_token = os.getenv("PUSHOVER_TOKEN")
@@ -31,23 +29,15 @@ class Tools:
         """ Main entry point for retrieving and defining available tools."""
 
         return [
-            self.search_tool, 
             self.pushover_tool, 
-            self.wikipedia_tool, 
             self.python_tool, 
             self.file_tool
         ]
-    
-    async def playwright_tools(self):
-        playwright = await async_playwright().start()
-        browser = await playwright.chromium.launch(headless=False)
-        toolkit = PlayWrightBrowserToolkit.from_browser(async_browser=browser)
-        return toolkit.get_tools(), browser, playwright
 
     def file_tool(self, root_dir:str = "sandbox"):
         """ File tool - interacting with file explorer. """
 
-        toolkit = FileManagementToolkit(root_dir="root_dir")
+        toolkit = FileManagementToolkit(root_dir=root_dir)
         return toolkit.get_tools()
 
     def push(self, text: str):
@@ -60,20 +50,6 @@ class Tools:
         """ Pushover tool - Send Push notifications to the user. """
 
         return Tool(name="send_push_notification", func=self.push, description="Use this tool when you want to send a push notification")
-
-    def wikipedia_tool(self):
-        """ Wikipedia tool - performing wiki searches. """
-
-        return WikipediaQueryRun(api_wrapper=self.wiki)
-
-    def search_tool(self):
-        """ Search tool - perform web searches using Serper. """
-
-        return Tool(
-            name="search",
-            func=self.serper.run,
-            description="Use this tool when you want to get the results of an online web search"
-        ) 
 
     def python_tool(self):
         """ Python repl tool - writing/running Python code. """

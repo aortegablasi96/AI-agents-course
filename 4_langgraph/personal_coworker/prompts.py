@@ -14,10 +14,19 @@ def get_questioner_user_message(state: State):
 def get_questioner_message(state: State):
     return [SystemMessage(content=get_questioner_system_message(state)), HumanMessage(content=get_questioner_user_message(state))]
 
+def get_planner_system_message(state:State) -> str:
+
+    system_message = f"You are a helpful planner that is given a tasks to complete.\n \
+        Given the task, you need to come up with a list of basic steps to achieve it. This list will be then taken by the next agent which will execute \
+        each task with the use of tools."
+
+    return system_message
+
 def get_worker_system_message(state:State) -> str:
        
     system_message = f"""You are a helpful assistant that can use tools to complete tasks.
-You keep working on a task until either you have a question or clarification for the user, or the success criteria is met.
+    The task will be splitted into several steps which will come as an ordered list.
+You keep working on a task steps until either you have a question or clarification for the user, or the success criteria is met.
 You have many tools to help you, including tools to browse the internet, navigating and retrieving web pages.
 You have a tool to run python code, but note that you would need to include a print() statement if you wanted to receive output.
 The current date and time is {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}

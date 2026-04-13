@@ -1,17 +1,17 @@
 from langchain_core.messages import SystemMessage
 from typing import Any, Dict
 
-from tools import Tools
 from models.state import State
 from prompts import get_worker_system_message,get_evaluator_message,get_questioner_message
 
 class Nodes:
     def __init__(self):
-        self.tools_object = Tools()
-        self.tools = None
-        self.llm_with_tools = None
         self.evaluator_llm_with_output = None
         self.questioner_llm_with_output = None
+        self.planer_llm_with_output = None
+        self.llm_with_tools = None
+        # self.webtools_worker_llm = None
+        # self.misctools_worker_llm = None
         self.model = "gpt-4o-mini"
 
     def questioner_node(self, state: State) -> State:
@@ -34,6 +34,37 @@ class Nodes:
 
         return new_state
 
+    def planer_node(self, state:State) -> Dict[str, Any]:
+        system_message = get_worker_system_message(state)
+
+        # Add in the system message
+        found_system_message = False
+        messages = state.messages
+        for message in messages:
+            if isinstance(message, SystemMessage):
+                message.content = system_message
+                found_system_message = True
+
+        if not found_system_message:
+            messages = [SystemMessage(content=system_message)] + messages
+        # Invoke the LLM with tools
+        response = self.planer_llm_with_output.invoke(messages)
+
+        message = ""
+        for i,step in enumerate(response.steps):
+            message += f'Step proposed #{i+1}: ' + step.step + '\n'
+
+        # Return updated state
+        return {
+            "messages": [
+                {
+                    "role": "assistant",
+                    "content": message
+                }
+            ],
+        }
+        
+
     def worker_node(self, state:State) -> Dict[str, Any]:
         system_message = get_worker_system_message(state)
 
@@ -55,7 +86,7 @@ class Nodes:
             "messages": [response],
         }
 
-    def evaluator_node(self, state:State) -> State:
+    def evaluator_node(self, state: State) -> State:
         evaluator_messages = get_evaluator_message(state)
 
         eval_result = self.evaluator_llm_with_output.invoke(evaluator_messages)
